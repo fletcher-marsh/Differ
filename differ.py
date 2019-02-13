@@ -63,6 +63,7 @@ def run_time_comparison(repos, time):
     # Given input time period in minutes, collect all <time> minute interval groups
     groups = get_groups(buckets, time)
 
+# Handle logistics based off of type of comparison requested
 def main():
     args = parser.parse_args()
     projects = os.listdir(args.directory[0])
@@ -70,7 +71,6 @@ def main():
     repos = load_repos(full_paths)
     if args.by_time:
         run_time_comparison(repos, args.by_time[0])
-
 
 if __name__ == "__main__":
     main()
