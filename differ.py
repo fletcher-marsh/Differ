@@ -20,7 +20,7 @@ def create_buckets(repos, time):
         commit_history = repos[student].head.reference.log()
         for commit in commit_history:
             bucket = commit.time[0] // bucket_size * bucket_size # translate to bucket in seconds
-            buckets[bucket] = buckets.get(bucket, []) + [(student, commit)]
+            buckets[bucket] = buckets.get(bucket, []) + [(student, commit.message)]
     return buckets
 
 # Combine 1 min intervals of commits into <time> min intervals
@@ -50,7 +50,7 @@ def load_repos(paths):
 
     for path in paths:
         repo = git.Repo(path)
-        author = repo.head.commit.author
+        author = repo.head.commit.author.name
         all_repos[author] = git.Repo(path)
 
     return all_repos
