@@ -4,6 +4,7 @@ import git
 import sys
 import os
 import argparse
+import time
 
 parser = argparse.ArgumentParser(description="An engine for comparing Git histories")
 parser.add_argument("directory", type=str, nargs=1, 
@@ -15,11 +16,11 @@ parser.add_argument("--time", dest="by_time", required=False, nargs=1, type=int,
 def create_buckets(repos, time):
     bucket_size = 60 # in seconds
     buckets = {}
-    for student in repos:
-        commit_history = repos[student].head.reference.log()
-        for commit in commit_history:
-            bucket = commit.time[0] // bucket_size * bucket_size # translate to bucket in seconds
-            buckets[bucket] = buckets.get(bucket, []) + [(student, commit.message)]
+    for owner in repos:
+        # commit_history = repos[repo].refs.master.reference.log()
+        for commit in repos[owner].iter_commits():
+            bucket = commit.committed_date // bucket_size * bucket_size # translate to bucket in seconds
+            buckets[bucket] = buckets.get(bucket, []) + [(commit.author.name, commit.message)]
     return buckets
 
 # Combine 1 min intervals of commits into <time> min intervals
@@ -44,9 +45,9 @@ def get_groups(buckets, time):
                 # We have a grouping!
                 if not added_commit:
                     # Only add commit1 once
-                    groups[commit_time] = groups.get(commit_time, []) + [buckets[commit_time]]
+                    groups[commit_time] = groups.get(commit_time, []) + buckets[commit_time]
                     added_commit = True
-                groups[commit_time].append(buckets[try_time])   
+                groups[commit_time]+= buckets[try_time]   
     return groups
 
 # Synthesize aggregate information for submissions
@@ -71,6 +72,22 @@ def run_time_comparison(repos, time):
     return groups
 
 
+def bold(s):
+    return "\033[1m" + s + "\033[0m"
+
+def section_header(s):
+    return "========================\n" + bold(s) + "\n========================\n"
+
+def output(groups):
+    for grp in sorted(groups.keys()):
+        tup_time = time.gmtime(grp)
+        readable_time = time.asctime(tup_time)
+        print(section_header(readable_time))
+        for commit in groups[grp]:
+            print(bold(commit[0]) + ": " + commit[1].strip())
+            print()
+        print()
+
 # Handle logistics based off of type of comparison requested
 def main():
     args = parser.parse_args()
@@ -78,7 +95,8 @@ def main():
     full_paths = map(lambda p: args.directory[0] + os.sep + p, projects)
     repos = load_repos(full_paths)
     if args.by_time:
-        print(run_time_comparison(repos, args.by_time[0]))
+        groups = run_time_comparison(repos, args.by_time[0])
+        output(groups)
 
 if __name__ == "__main__":
     main()
