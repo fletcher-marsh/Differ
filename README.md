@@ -9,9 +9,12 @@ sh setup.sh
 ```
 This should put the `differ` binary in your environment. Now you can use the program by typing:
 ```
-differ [directory of repositories] [option] [val]
+differ [parent directory of repositories] [option] [val]
 ```
-
+Or:
+```
+differ [repo1] [repo2] [repo3] ... [option] [val]
+```
 ## Supported options
 `--time [n]`  
   

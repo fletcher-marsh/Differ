@@ -7,17 +7,16 @@ import argparse
 import time
 
 parser = argparse.ArgumentParser(description="An engine for comparing Git histories")
-parser.add_argument("directory", type=str, nargs=1, 
-                    help="path to folder containing all projects (each containing a Git repo")
+parser.add_argument("directories", type=str, nargs="+",
+                    help="paths to folders containing all projects (each containing a Git repo)")
 parser.add_argument("--time", dest="by_time", required=False, nargs=1, type=int,
                     help="group commits together by time buckets (in minutes)")
-    
+
 # Group commits associated with students together by time (1 min intervals)
 def create_buckets(repos, time):
     bucket_size = 60 # in seconds
     buckets = {}
     for owner in repos:
-        # commit_history = repos[repo].refs.master.reference.log()
         for commit in repos[owner].iter_commits():
             bucket = commit.committed_date // bucket_size * bucket_size # translate to bucket in seconds
             buckets[bucket] = buckets.get(bucket, []) + [(commit.author.name, commit.message)]
@@ -47,7 +46,7 @@ def get_groups(buckets, time):
                     # Only add commit1 once
                     groups[commit_time] = groups.get(commit_time, []) + buckets[commit_time]
                     added_commit = True
-                groups[commit_time]+= buckets[try_time]   
+                groups[commit_time] += buckets[try_time]
     return groups
 
 # Synthesize aggregate information for submissions
@@ -68,7 +67,7 @@ def run_time_comparison(repos, time):
 
     # Given input time period in minutes, collect all <time> minute interval groups
     groups = get_groups(buckets, time)
-    
+
     return groups
 
 
@@ -88,11 +87,26 @@ def output(groups):
             print()
         print()
 
+# Handle various directory inputs to Differ
+def get_all_paths(dirs):
+    if len(dirs) == 1:
+        try:
+            # User provided a single valid repo
+            git.Repo(dirs[0])
+            return dirs
+        except:
+            # User provided a parent directory to repos
+            projects = os.listdir(dirs[0])
+            paths = map(lambda p: dirs[0] + os.sep + p, projects)
+            return paths
+    else:
+        # User provided exact paths to repos, no need to do any parsing
+        return dirs
+
 # Handle logistics based off of type of comparison requested
 def main():
     args = parser.parse_args()
-    projects = os.listdir(args.directory[0])
-    full_paths = map(lambda p: args.directory[0] + os.sep + p, projects)
+    full_paths = get_all_paths(args.directories)
     repos = load_repos(full_paths)
     if args.by_time:
         groups = run_time_comparison(repos, args.by_time[0])
