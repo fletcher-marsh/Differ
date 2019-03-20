@@ -5,6 +5,9 @@ import sys
 import os
 import argparse
 import time
+import re
+
+IGNORE_AUTHORS = {"profh", "Justin Kufro"}
 
 parser = argparse.ArgumentParser(description="An engine for comparing Git histories")
 parser.add_argument("directories", type=str, nargs="+",
@@ -18,8 +21,11 @@ def create_buckets(repos, time):
     buckets = {}
     for owner in repos:
         for commit in repos[owner].iter_commits():
-            bucket = commit.committed_date // bucket_size * bucket_size # translate to bucket in seconds
-            buckets[bucket] = buckets.get(bucket, []) + [(commit.author.name, commit.message)]
+            author = commit.author.name
+            # TAs/profh occasionally have commits, ignore them
+            if author not in IGNORE_AUTHORS:
+                bucket = commit.committed_date // bucket_size * bucket_size # translate to bucket in seconds
+                buckets[bucket] = buckets.get(bucket, []) + [(author, commit.message)]
     return buckets
 
 # Combine 1 min intervals of commits into <time> min intervals
@@ -52,10 +58,13 @@ def get_groups(buckets, time):
 # Synthesize aggregate information for submissions
 def load_repos(paths):
     all_repos = {}
+    # the script downloads to folders with the author's name as the identifier, parse that
+    name_from_path_reg = re.compile(r".*/([A-z]*[0-9]*)")
 
     for path in paths:
         repo = git.Repo(path)
-        author = repo.head.commit.author.name
+        # author = repo.head.commit.author.name # this doesn't work because Justin squashes with new commit
+        author = re.match(name_from_path_reg, path).group(1)
         all_repos[author] = git.Repo(path)
 
     return all_repos
@@ -67,7 +76,6 @@ def run_time_comparison(repos, time):
 
     # Given input time period in minutes, collect all <time> minute interval groups
     groups = get_groups(buckets, time)
-
     return groups
 
 
