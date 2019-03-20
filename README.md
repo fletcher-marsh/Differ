@@ -3,17 +3,17 @@
 ## How to use Differ
 NOTE: These are instructions for a linux-based OS!  
   
-In a shell run:
+In a clean directory run:
 ```
-sh setup.sh
+sh path/to/setup.sh
 ```
-This should put the `differ` binary in your environment. Now you can use the program by typing:
+This should put the `differ` binary in your environment as well as download all student repositories for a given phase. Now you can use the program by typing:
 ```
 differ [parent directory of repositories] [option] [val]
 ```
 Or:
 ```
-differ [repo1] [repo2] [repo3] ... [option] [val]
+differ [repo1_dir] [repo2_dir] [repo3_dir] ... [option] [val]
 ```
 ## Supported options
 `--time [n]`  
