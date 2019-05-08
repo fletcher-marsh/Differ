@@ -16,14 +16,5 @@ DIFFER_DIR=$(dirname "$BASH_SOURCE")
 cp "$DIFFER_DIR/differ.py" /usr/local/bin/differ.py
 ln -s /usr/local/bin/differ.py /usr/local/bin/differ
 
-set +x
-
-USERS="nnang nbelaye1 abhanda1 sunghoch ajchung jclay neild jjfeng rfeng rfitzpa1 rolandog vivianh ruj dongyook yonghool siheonl tcli atnelson sqp jeyoungp bharathp jsegel yuhanson sssurapa zteoh sarahwan dweems chentinz"
-PHASE_NAME="phase5_f18"
-
-for USER in $USERS; do
-  git clone git@darkknight-cmuis.net:$USER/$PHASE_NAME.git $USER
-done
-
 echo "Done!"
 exit 0
